@@ -1,6 +1,9 @@
 require('dotenv').config();
-const { urlencoded } = require('express');
 const express = require('express');
+// const multer = require('multer');
+// const upload = multer({dest: 'tmp_uplaods/'});
+const upload = require(__dirname+'/modules/upload-img');
+const fs = require('fs').promises;
 
 const app = express();
 
@@ -44,6 +47,26 @@ app.post('/try-post-form', (req, res) => {
 });
 
 
+app.post('/try-upload', upload.single('avatar'), async (req, res) => {
+    res.json(req.file);
+    /*
+    if(req.file && req.file.originalname){
+        await fs.rename(req.file.path, `public/imgs/${req.file.originalname}`);
+        res.json(req.file);
+    } else {
+        res.json({msg:'沒有上傳檔案'})
+    }
+    */
+    //async await或callback function
+    //fs.rename 搬到新的位置
+});
+
+app.post('/try-upload2', upload.array('photos'), async (req, res) => {
+    res.json(req.files);
+
+});
+
+
 app.use(express.static('public')); // 靜態資料夾設定
 app.use(express.static('node_modules/bootstrap/dist'));
 //C:\Users\User\Desktop\nodejs\node_modules\bootstrap\dist\css\bootstrap.css
@@ -51,7 +74,7 @@ app.use(express.static('node_modules/bootstrap/dist'));
 app.use((req, res)=>{
     // res.type('text/plain'); //純文字
     // res.status(404).send('<h3>找不到你要的頁面</h3>');
-    res.status(404).render('404');
+    res.status(404).render('404'); //圖片404.webp
 }) // 404頁面設定
 
 const port = process.env.SERVER_PORT || 3002;
