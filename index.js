@@ -1,5 +1,8 @@
 require('dotenv').config();
 const express = require('express');
+const session = require('express-session');
+const moment = require('moment-timezone');
+const db = require(__dirname+'/modules/db_connect2')
 // const multer = require('multer');
 // const upload = multer({dest: 'tmp_uplaods/'});
 const upload = require(__dirname+'/modules/upload-img');
@@ -10,6 +13,15 @@ const app = express();
 app.set('view engine', 'ejs'); //ejs
 
 // top-level middleware
+app.use(session({
+    saveUninitialized: false,
+    // 新用戶沒有使用到 session 物件時不會建立 session 和發送 cookie
+    resave: false, // 沒變更內容是否強制回存
+    secret: "321ewewer", //亂碼隨意給
+    cookie: {
+        maxAge: 1_200_000, //_方便確認位數 20min=1200sec=1200_000msec
+    },
+}));
 app.use(express.urlencoded({extended:false}));
 app.use(express.json());
 
@@ -83,9 +95,52 @@ app.get(/^\/m\/09\d{2}\-?\d{3}\-?\d{3}$/i, (req, res)=>{
 
 app.use('/admin2', require(__dirname+'/routes/admin2'))
 
+const myMiddle = (req, res, next)=>{
+    res.locals = {...res.local, shinder:'hello', shinder2:'hello2'}
+    res.locals.derrrr = 567;
+    // res.myPersonal = {...res.local, shinder:'hello'} //自己取名'myPersonal'不建議
+
+    next();
+}; // req, res會往下傳遞
+
+// myMiddle可包可不包[]
+app.get('/try-middle', [myMiddle], (req, res)=>{
+    res.json(res.locals);
+});
+
+app.get('/try-session', (req, res)=>{
+    req.session.aaa ||= 0; //預設值
+    req.session.aaa++;
+    res.json(req.session);
+});
+
+app.get('/try-date', (req, res)=>{
+    // const now = new Date;
+    const fm = 'YYYY/MM/DD HH:mm:ss'; //想要輸出的格式
+    const m = moment('06/10/22', 'DD/MM/YY'); //原始的資料
+    // const n = moment('06/10/22', 'MM/DD/YY');
+    res.send({
+            m,
+            m1: m.format(fm),
+            m2: m.tz('Europe/London').format(fm),
+    //     t1: now,
+    //     t2: now.toString(),
+    //     t3: now.toDateString(),
+    //     t4: now.toLocaleDateString(),
+    //     m: m.format('YYYY-MM-DD HH:mm:ss')
+    })//t1~t4直接用不好用,改用moment.js
+});
+
+app.get('/try-db', async (req, res)=>{
+    const [rows] = await db.query("SELECT * FROM `address_book` LIMIT 5");
+    res.json(rows);
+});
+
+// --------------------------------------------------
 app.use(express.static('public')); // 靜態資料夾設定
 app.use(express.static('node_modules/bootstrap/dist'));
 //C:\Users\User\Desktop\nodejs\node_modules\bootstrap\dist\css\bootstrap.css
+// --------------------------------------------------
 
 app.use((req, res)=>{
     // res.type('text/plain'); //純文字
