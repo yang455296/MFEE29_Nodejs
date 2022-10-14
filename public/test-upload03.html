@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>改用map</title>
+    <style>
+        .photo {
+            display: inline-block;
+            position: relative;
+            width: 200px;
+            height: 200px;
+            border: 1px solid red;
+        }
+
+        .photo img {
+            position: absolute;
+            width: 100px;
+        }
+    </style>
+</head>
+
+<body>
+    <form name="form1">
+        <input type="file" accept="image/*" name="photos" multiple onchange="upload()"></input>
+    </form>
+    <div id="photo-div">
+        <div class="photo">
+            <!-- <img src="/uploads/4f08cbd1-7c55-4afe-a788-6a051fe0bda9.png" alt=""> -->
+        </div>
+    </div>
+
+    <script>
+        const item_tpl_func = ({filename}) => {
+            return `
+            <div class="photo">
+            <img src="/uploads/${filename}" alt="">
+            </div>
+            `
+        };
+
+
+        async function upload() {
+            const fd = new FormData(document.form1);
+
+            const r = await fetch('/try-upload2', {
+                method: 'POST',
+                body: fd
+            });
+            const result = await r.json();
+            console.log(result);
+            // myimg.src= '/uploads/'+result.filename;
+
+            let str = '';
+
+            //map
+            if (result && result.length){
+                str = result.map( obj=> item_tpl_func(obj)).join('')
+            }
+            document.querySelector('#photo-div').innerHTML = str;
+        }
+    </script>
+</body>
+
+</html>

@@ -67,6 +67,22 @@ app.post('/try-upload2', upload.array('photos'), async (req, res) => {
 });
 
 
+app.get('/my-params1/:action?/:id?', (req, res)=>{
+    res.json(req.params);
+}); 
+// /my-params1/:action/:id'
+// :action, :id  一定要給值
+// :action?, :id?不一定要給值
+
+app.get(/^\/m\/09\d{2}\-?\d{3}\-?\d{3}$/i, (req, res)=>{
+    let u =req.url.slice(3); //去掉/m/
+    u= u.split('?')[0]; //去掉query string 最後的?
+    u= u.split('-').join('');
+    res.json({mobile: u});
+}); 
+
+app.use('/admin2', require(__dirname+'/routes/admin2'))
+
 app.use(express.static('public')); // 靜態資料夾設定
 app.use(express.static('node_modules/bootstrap/dist'));
 //C:\Users\User\Desktop\nodejs\node_modules\bootstrap\dist\css\bootstrap.css
