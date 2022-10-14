@@ -1,11 +1,13 @@
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
+const MysqlStore = require('express-mysql-session')
 const moment = require('moment-timezone');
-const db = require(__dirname+'/modules/db_connect2')
+const db = require(__dirname + '/modules/db_connect2');
+const sessionStore = new MysqlStore({}, db);
 // const multer = require('multer');
 // const upload = multer({dest: 'tmp_uplaods/'});
-const upload = require(__dirname+'/modules/upload-img');
+const upload = require(__dirname + '/modules/upload-img');
 const fs = require('fs').promises;
 
 const app = express();
@@ -18,27 +20,28 @@ app.use(session({
     // 新用戶沒有使用到 session 物件時不會建立 session 和發送 cookie
     resave: false, // 沒變更內容是否強制回存
     secret: "321ewewer", //亂碼隨意給
+    store: sessionStore,
     cookie: {
         maxAge: 1_200_000, //_方便確認位數 20min=1200sec=1200_000msec
     },
 }));
-app.use(express.urlencoded({extended:false}));
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 //routes
 //  get只允許get的方法, use都可以
-app.get('/', (req, res)=>{
-    res.render('main', {name: 'Shinder'});
+app.get('/', (req, res) => {
+    res.render('main', { name: 'Shinder' });
 }); //根目錄  //ejs  name變成變數到main.ejs裡
 
-app.get('/sales-json', (req, res)=>{
-    const sales = require(__dirname+'/data/sales');
+app.get('/sales-json', (req, res) => {
+    const sales = require(__dirname + '/data/sales');
     console.log(sales);
-    res.render(`sales-json`, {sales});
+    res.render(`sales-json`, { sales });
 });
 
-app.get('/json-test', (req, res)=>{
-    res.send({name: 'Shinder', age:30});
+app.get('/json-test', (req, res) => {
+    res.send({ name: 'Shinder', age: 30 });
     // res.json({name: 'Shinder', age:30});
 });
 
@@ -79,24 +82,24 @@ app.post('/try-upload2', upload.array('photos'), async (req, res) => {
 });
 
 
-app.get('/my-params1/:action?/:id?', (req, res)=>{
+app.get('/my-params1/:action?/:id?', (req, res) => {
     res.json(req.params);
-}); 
+});
 // /my-params1/:action/:id'
 // :action, :id  一定要給值
 // :action?, :id?不一定要給值
 
-app.get(/^\/m\/09\d{2}\-?\d{3}\-?\d{3}$/i, (req, res)=>{
-    let u =req.url.slice(3); //去掉/m/
-    u= u.split('?')[0]; //去掉query string 最後的?
-    u= u.split('-').join('');
-    res.json({mobile: u});
-}); 
+app.get(/^\/m\/09\d{2}\-?\d{3}\-?\d{3}$/i, (req, res) => {
+    let u = req.url.slice(3); //去掉/m/
+    u = u.split('?')[0]; //去掉query string 最後的?
+    u = u.split('-').join('');
+    res.json({ mobile: u });
+});
 
-app.use('/admin2', require(__dirname+'/routes/admin2'))
+app.use('/admin2', require(__dirname + '/routes/admin2'))
 
-const myMiddle = (req, res, next)=>{
-    res.locals = {...res.local, shinder:'hello', shinder2:'hello2'}
+const myMiddle = (req, res, next) => {
+    res.locals = { ...res.local, shinder: 'hello', shinder2: 'hello2' }
     res.locals.derrrr = 567;
     // res.myPersonal = {...res.local, shinder:'hello'} //自己取名'myPersonal'不建議
 
@@ -104,37 +107,52 @@ const myMiddle = (req, res, next)=>{
 }; // req, res會往下傳遞
 
 // myMiddle可包可不包[]
-app.get('/try-middle', [myMiddle], (req, res)=>{
+app.get('/try-middle', [myMiddle], (req, res) => {
     res.json(res.locals);
 });
 
-app.get('/try-session', (req, res)=>{
+app.get('/try-session', (req, res) => {
     req.session.aaa ||= 0; //預設值
     req.session.aaa++;
     res.json(req.session);
 });
 
-app.get('/try-date', (req, res)=>{
+app.get('/try-date', (req, res) => {
     // const now = new Date;
     const fm = 'YYYY/MM/DD HH:mm:ss'; //想要輸出的格式
     const m = moment('06/10/22', 'DD/MM/YY'); //原始的資料
     // const n = moment('06/10/22', 'MM/DD/YY');
     res.send({
-            m,
-            m1: m.format(fm),
-            m2: m.tz('Europe/London').format(fm),
-    //     t1: now,
-    //     t2: now.toString(),
-    //     t3: now.toDateString(),
-    //     t4: now.toLocaleDateString(),
-    //     m: m.format('YYYY-MM-DD HH:mm:ss')
+        m,
+        m1: m.format(fm),
+        m2: m.tz('Europe/London').format(fm),
+        //     t1: now,
+        //     t2: now.toString(),
+        //     t3: now.toDateString(),
+        //     t4: now.toLocaleDateString(),
+        //     m: m.format('YYYY-MM-DD HH:mm:ss')
     })//t1~t4直接用不好用,改用moment.js
 });
 
-app.get('/try-db', async (req, res)=>{
+app.get('/try-db', async (req, res) => {
     const [rows] = await db.query("SELECT * FROM `address_book` LIMIT 5");
     res.json(rows);
 });
+
+app.get('/try-db-add', async (req, res) => {
+    const name = 'name';
+    const email = 'email@mail.com';
+    const mobile = '0912345678';
+    const birthday = '2000-01-01';
+    const address = '台北';
+    const sql = "INSERT INTO `address_book`(`name`, `mobile`, `email`, `birthday`, `address`, `created_at`) VALUES (?, ?, ?, ?, ?, NOW())"
+    const [result] = await db.query(sql, [name, mobile, email, birthday, address]);
+    res.json(result);
+    // const [{affectedRows, insertId}] = await db.query(sql, [name, mobile, email, birthday, address]);
+    // res.json({affectedRows, insertId});
+});
+
+app.use('/ab', require(__dirname+ '/routes/address-book'))
 
 // --------------------------------------------------
 app.use(express.static('public')); // 靜態資料夾設定
@@ -142,13 +160,13 @@ app.use(express.static('node_modules/bootstrap/dist'));
 //C:\Users\User\Desktop\nodejs\node_modules\bootstrap\dist\css\bootstrap.css
 // --------------------------------------------------
 
-app.use((req, res)=>{
+app.use((req, res) => {
     // res.type('text/plain'); //純文字
     // res.status(404).send('<h3>找不到你要的頁面</h3>');
     res.status(404).render('404'); //圖片404.webp
 }) // 404頁面設定
 
 const port = process.env.SERVER_PORT || 3002;
-app.listen(port, ()=>{
+app.listen(port, () => {
     console.log(`server started, port: ${port}`)
 })
