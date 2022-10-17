@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/fontawesome/css/all.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col col-lg-8"></div>
+            <div class="col col-lg-4">
+                <form class="d-flex" role="search">
+                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search"
+                        name="search" value="">
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="?search=%E6%A5%8A&amp;page=0">
+                                <i class="fa-solid fa-arrow-left"></i>
+                            </a>
+                        </li>
+
+                        <li class="page-item active">
+                            <a class="page-link" href="?search=%E6%A5%8A&amp;page=1">1</a>
+                        </li>
+
+                        <li class="page-item ">
+                            <a class="page-link" href="?search=%E6%A5%8A&amp;page=2">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col table-container">
+                <!--                 
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">name</th>
+                            <th scope="col">mobile</th>
+                            <th scope="col">email</th>
+                            <th scope="col">birthday</th>
+                            <th scope="col">address</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>2</td>
+                            <td>3</td>
+                            <td>4</td>
+                            <td>5</td>
+                            <td>6</td>
+                        </tr>
+                    </tbody>
+                </table> -->
+
+            </div>
+        </div>
+    </div>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script>
+
+
+        function renderTable({rows}) {
+            return `
+            <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">name</th>
+                            <th scope="col">mobile</th>
+                            <th scope="col">email</th>
+                            <th scope="col">birthday</th>
+                            <th scope="col">address</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows.map(el => {
+                            return `
+                            <tr>
+                                <td>${el.sid}</td>
+                                <td>${el.name}</td>
+                                <td>${el.mobile}</td>
+                                <td>${el.email}</td>
+                                <td>${el.birthday}</td>
+                                <td>${el.address}</td>
+                            </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+        fetch('/ab/api')
+            .then(r => r.json())
+            .then(result => {
+                console.log(result)
+                document.querySelector('.table-container').innerHTML = renderTable(result)
+            })
+        
+    </script>
+</body>
+
+</html>

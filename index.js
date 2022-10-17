@@ -28,6 +28,13 @@ app.use(session({
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
+app.use((req, res, next) => {
+    //自己定義的 template helper function
+    res.locals.toDateString = (d) => moment(d).format('YYYY/MM/DD');
+    res.locals.toDatetimeString = (d) => moment(d).format('YYYY/MM/DD HH:mm:ss');
+    next()
+})
+
 //routes
 //  get只允許get的方法, use都可以
 app.get('/', (req, res) => {
@@ -152,7 +159,7 @@ app.get('/try-db-add', async (req, res) => {
     // res.json({affectedRows, insertId});
 });
 
-app.use('/ab', require(__dirname+ '/routes/address-book'))
+app.use('/ab', require(__dirname + '/routes/address-book'))
 
 // --------------------------------------------------
 app.use(express.static('public')); // 靜態資料夾設定
