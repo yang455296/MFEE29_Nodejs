@@ -16,7 +16,16 @@ const app = express();
 app.set('view engine', 'ejs'); //ejs
 
 // top-level middleware
-app.use(cors());
+const corsOptions = {
+    credentials: true,
+    origin: function(origin, callback){
+        console.log({origin});
+        callback(null, true)
+    }
+}
+
+app.use(cors(corsOptions));
+
 app.use(session({
     saveUninitialized: false,
     // 新用戶沒有使用到 session 物件時不會建立 session 和發送 cookie
@@ -32,9 +41,11 @@ app.use(express.json());
 
 app.use((req, res, next) => {
     //自己定義的 template helper function
-    res.locals.toDateString = (d) => moment(d).format('YYYY/MM/DD');
-    res.locals.toDatetimeString = (d) => moment(d).format('YYYY/MM/DD HH:mm:ss');
-    next()
+    res.locals.toDateString = (d) => moment(d).format('YYYY-MM-DD');
+    res.locals.toDatetimeString = (d) => moment(d).format('YYYY-MM-DD HH:mm:ss');
+    res.locals.title = '小新的網站';
+    res.locals.session = req.session;
+    next();
 })
 
 //routes
@@ -162,6 +173,20 @@ app.get('/try-db-add', async (req, res) => {
 });
 
 app.use('/ab', require(__dirname + '/routes/address-book'))
+
+app.get('/fake-login',(req, res)=>{
+    req.session.admin = {
+        id: 12,
+        account: 'shinder',
+        nickname: '小新'
+    };
+    res.redirect('/');
+});
+
+app.get('/logout',(req, res)=>{
+    delete req.session.admin ;
+    res.redirect('/');
+})
 
 // --------------------------------------------------
 app.use(express.static('public')); // 靜態資料夾設定
