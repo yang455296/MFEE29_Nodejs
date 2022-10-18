@@ -5,6 +5,7 @@ const MysqlStore = require('express-mysql-session')
 const moment = require('moment-timezone');
 const db = require(__dirname + '/modules/db_connect2');
 const sessionStore = new MysqlStore({}, db);
+const cors = require('cors');
 // const multer = require('multer');
 // const upload = multer({dest: 'tmp_uplaods/'});
 const upload = require(__dirname + '/modules/upload-img');
@@ -15,6 +16,7 @@ const app = express();
 app.set('view engine', 'ejs'); //ejs
 
 // top-level middleware
+app.use(cors());
 app.use(session({
     saveUninitialized: false,
     // 新用戶沒有使用到 session 物件時不會建立 session 和發送 cookie

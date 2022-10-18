@@ -156,7 +156,7 @@
 
         async function getData(){
             let usp = new URLSearchParams(location.search);
-            const r = await fetch('/ab/api?'+usp.toString());
+            const r = await fetch('http://192.168.1.26:3001/ab/api?'+usp.toString());
             const result = await r.json();
             console.log(result);
             t_container.innerHTML = renderTable(result)
@@ -205,10 +205,6 @@
         }
 
         window.addEventListener('popstate', function(){
-            const usp = new URLSearchParams(location.search);
-            if(usp.get('search')) document.forms[0].search.value = usp.get('search');
-            else document.forms[0].search.value = '';
-
             getData();
         })
     </script>
