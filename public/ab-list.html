@@ -154,8 +154,15 @@
                 p_container.innerHTML = renderPagi(result)
             })*/
 
-        async function getData(){
-            let usp = new URLSearchParams(location.search);
+        async function getDataAndRender(){
+            const usp = new URLSearchParams(location.search);
+            if(usp.get('search')) {
+                document.forms[0].search.value = usp.get('search')
+            } else {
+                document.forms[0].search.value = ''
+            }
+            //右上input search會拿到值
+            
             const r = await fetch('/ab/api?'+usp.toString());
             const result = await r.json();
             console.log(result);
@@ -163,9 +170,7 @@
             p_container.innerHTML = renderPagi(result)
         }
 
-        const usp = new URLSearchParams(location.search);
-        if(usp.get('search')) document.forms[0].search.value = usp.get('search'); //右上input search會拿到值
-        getData();
+        getDataAndRender();
 
         // 只更新搜尋資料 更新網址 不刷頁面
         function doSearch(event) {
@@ -178,7 +183,7 @@
 
             history.pushState('', '', '?' + usp.toString()); //更新網址 不刷頁面
             // console.log(location.search)
-            getData();
+            getDataAndRender();
             /*
             fetch('/ab/api' + location.search)
                .then(r => r.json())
@@ -193,7 +198,7 @@
             const usp = new URLSearchParams(location.search);
             usp.set('page', p);
             history.pushState('', '', '?' + usp.toString()); //更新網址 不刷頁面
-            getData();
+            getDataAndRender();
             /*
             fetch('/ab/api' + location.search)
                 .then(r => r.json())
@@ -204,13 +209,7 @@
                 })*/
         }
 
-        window.addEventListener('popstate', function(){
-            const usp = new URLSearchParams(location.search);
-            if(usp.get('search')) document.forms[0].search.value = usp.get('search');
-            else document.forms[0].search.value = '';
-
-            getData();
-        })
+        window.addEventListener('popstate', getDataAndRender)
     </script>
 </body>
 
