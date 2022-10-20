@@ -188,6 +188,62 @@ app.get('/logout',(req, res)=>{
     res.redirect('/');
 })
 
+
+app.get('/cate', async (req, res)=>{
+    const [rows] = await db.query("SELECT * FROM categories ");
+
+    const firsts = [];
+    for (let i of rows){
+        if(i.parent_sid===0){
+            firsts.push(i);
+        }
+    }
+    for (let f of firsts){
+        for (let i of rows){
+            if(f.sid ===i.parent_sid){
+                f.children ||= [];
+                f.children.push(i);
+        }
+    }
+    }
+    res.json(firsts);
+})
+
+app.get('/cate2', async (req, res)=>{
+    const [rows] = await db.query("SELECT * FROM categories ");
+
+    const dict = {};
+    // 編輯字典 
+    for(let i of rows){
+        dict[i.sid] = i;
+    }
+
+    for (let i of rows){
+        if(i.parent_sid!=0){
+            const p = dict[i.parent_sid];
+            p.children ||= [];
+            p.children.push(i);
+        }
+    }
+    // 把第一層拿出來
+    const firsts = [];
+    for(let i of rows){
+        if(i.parent_sid===0){
+            firsts.push(i);
+        }
+    }
+    res.json(firsts);
+})
+
+/*
+//外部網站用localhost開(未安裝)
+const axios = require('axios');
+app.get('/yahoo', async (req, res)=>{
+    const response = await axios.get('https://tw.yahoo.com/');
+    res.send(response.data);
+});
+*/
+
 // --------------------------------------------------
 app.use(express.static('public')); // 靜態資料夾設定
 app.use(express.static('node_modules/bootstrap/dist'));
